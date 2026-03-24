@@ -335,6 +335,42 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
+if not os.path.exists(PDF_FOLDER):
+    os.makedirs(PDF_FOLDER)
+
+# ==================== SESION ====================
+def init_session_state():
+    defaults = {
+        "authenticated": False,
+        "show_dev": False,
+        "selected_favorite_by_plan": {},
+        "shopping_checks": {},
+        "uploaded_pdf_name": None,
+        "uploaded_pdf_path": None,
+        "uploaded_menus": None,
+    }
+    for key, value in defaults.items():
+        if key not in st.session_state:
+            st.session_state[key] = value
+
+init_session_state()
+
+if not st.session_state.authenticated:
+    st.markdown('<div class="hero-title">🔒 Acceso privado</div>', unsafe_allow_html=True)
+    st.markdown('<div class="hero-subtitle">Esta app es solo para uso autorizado.</div>', unsafe_allow_html=True)
+
+    password_input = st.text_input("Ingresa la contraseña", type="password")
+
+    if st.button("Entrar", use_container_width=True):
+        if password_input == PUBLIC_ACCESS_PASSWORD:
+            st.session_state.authenticated = True
+            st.rerun()
+        else:
+            st.error("Contraseña incorrecta")
+
+    st.stop()
+
 # ==================== DB ====================
 @st.cache_resource
 def get_mongo_db():
@@ -1085,7 +1121,7 @@ with st.sidebar:
 
     st.session_state.show_dev = st.checkbox(
         "Mostrar modo desarrolladora",
-        value=st.session_state.show_dev
+        value=st.session_state.get("show_dev", False)
     )
 
 # ==================== HEADER ====================
