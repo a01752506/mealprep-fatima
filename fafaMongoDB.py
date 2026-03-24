@@ -339,8 +339,22 @@ if not st.session_state.authenticated:
     st.stop()
 
 # ==================== DB ====================
-client = MongoClient(MONGO_URI)
-db = client[MONGO_DB_NAME]
+@st.cache_resource
+def get_mongo_db():
+    client = MongoClient(
+        MONGO_URI,
+        serverSelectionTimeoutMS=10000,
+        connectTimeoutMS=10000,
+        socketTimeoutMS=10000,
+        maxPoolSize=10
+    )
+    return client[MONGO_DB_NAME]
+
+db = get_mongo_db()
+
+menu_sets_collection = db["menu_sets"]
+usage_logs_collection = db["usage_logs"]
+generated_plans_collection = db["generated_plans"]
 
 menu_sets_collection = db["menu_sets"]
 usage_logs_collection = db["usage_logs"]
