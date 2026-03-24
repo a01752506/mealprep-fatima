@@ -316,6 +316,9 @@ def init_session_state():
     "show_dev": False,
     "selected_favorite_by_plan": {},
     "shopping_checks": {},
+    "uploaded_pdf_name": None,
+    "uploaded_pdf_path": None,
+    "uploaded_menus": None,
     }
     for key, value in defaults.items():
         if key not in st.session_state:
@@ -341,24 +344,37 @@ if not st.session_state.authenticated:
 # ==================== DB ====================
 @st.cache_resource
 def get_mongo_db():
-    client = MongoClient(
-        MONGO_URI,
-        serverSelectionTimeoutMS=5000,
-        connectTimeoutMS=5000,
-        socketTimeoutMS=5000,
-        maxPoolSize=10
-    )
-    client.admin.command("ping")
-    return client[MONGO_DB_NAME]
+    try:
+        client = MongoClient(
+            MONGO_URI,
+            serverSelectionTimeoutMS=5000,
+            connectTimeoutMS=5000,
+            socketTimeoutMS=5000,
+            maxPoolSize=10
+        )
+        client.admin.command("ping")
+        return client[MONGO_DB_NAME]
+    except Exception:
+        return None
+
 
 db = get_mongo_db()
+mongo_available = db is not None
 
-menu_sets_collection = db["menu_sets"]
-usage_logs_collection = db["usage_logs"]
-generated_plans_collection = db["generated_plans"]
+if mongo_available:
+    menu_sets_collection = db["menu_sets"]
+    usage_logs_collection = db["usage_logs"]
+    generated_plans_collection = db["generated_plans"]
+else:
+    menu_sets_collection = None
+    usage_logs_collection = None
+    generated_plans_collection = None
 
 
 def registrar_evento(tipo: str, detalle: str):
+    if not mongo_available:
+        return
+
     usage_logs_collection.insert_one({
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "tipo": tipo,
@@ -368,6 +384,10 @@ def registrar_evento(tipo: str, detalle: str):
 
 
 def guardar_plan(nombre_plan, pdf_path, menus_json):
+    if not mongo_available:
+        st.error("No se pudo conectar a MongoDB. Revisa tus secrets y Mongo Atlas.")
+        return
+
     menu_sets_collection.insert_one({
         "nombre_plan": nombre_plan,
         "pdf_path": pdf_path,
@@ -379,7 +399,16 @@ def guardar_plan(nombre_plan, pdf_path, menus_json):
 
 @st.cache_data(ttl=30)
 def cargar_planes():
-    docs = list(menu_sets_collection.find().sort("fecha", -1))
+    if not mongo_available:
+        return pd.DataFrame(columns=["id", "nombre_plan", "pdf_path", "menus_json", "fecha"])
+
+    docs = list(
+        menu_sets_collection.find(
+            {},
+            {"nombre_plan": 1, "pdf_path": 1, "menus_json": 1, "fecha": 1}
+        ).sort("fecha", -1)
+    )
+
     if not docs:
         return pd.DataFrame(columns=["id", "nombre_plan", "pdf_path", "menus_json", "fecha"])
 
@@ -390,14 +419,30 @@ def cargar_planes():
 
 
 def eliminar_plan(plan_id):
-    menu_sets_collection.delete_one({"_id": ObjectId(plan_id)})
-    generated_plans_collection.delete_many({"menu_set_id": plan_id})
-    st.cache_data.clear()
+    if not mongo_available:
+        st.error("No se pudo conectar a MongoDB.")
+        return
+
+    try:
+        menu_sets_collection.delete_one({"_id": ObjectId(plan_id)})
+        generated_plans_collection.delete_many({"menu_set_id": plan_id})
+        st.cache_data.clear()
+    except Exception:
+        st.error("No se pudo eliminar el plan.")
 
 
 @st.cache_data(ttl=30)
 def cargar_logs():
-    docs = list(usage_logs_collection.find().sort("timestamp", -1))
+    if not mongo_available:
+        return pd.DataFrame(columns=["timestamp", "tipo", "detalle", "accedido_desde"])
+
+    docs = list(
+        usage_logs_collection.find(
+            {},
+            {"timestamp": 1, "tipo": 1, "detalle": 1, "accedido_desde": 1}
+        ).sort("timestamp", -1)
+    )
+
     if not docs:
         return pd.DataFrame(columns=["timestamp", "tipo", "detalle", "accedido_desde"])
 
@@ -408,6 +453,10 @@ def cargar_logs():
 
 
 def guardar_plan_15_dias(menu_set_id, favorite_menu, plan_data):
+    if not mongo_available:
+        st.error("No se pudo conectar a MongoDB.")
+        return
+
     generated_plans_collection.delete_many({"menu_set_id": menu_set_id})
 
     generated_plans_collection.insert_one({
@@ -421,8 +470,14 @@ def guardar_plan_15_dias(menu_set_id, favorite_menu, plan_data):
 
 @st.cache_data(ttl=30)
 def cargar_plan_15_dias(menu_set_id):
+    if not mongo_available:
+        return pd.DataFrame(columns=["menu_set_id", "favorite_menu", "plan_json", "created_at"])
+
     docs = list(
-        generated_plans_collection.find({"menu_set_id": menu_set_id}).sort("created_at", -1).limit(1)
+        generated_plans_collection.find(
+            {"menu_set_id": menu_set_id},
+            {"menu_set_id": 1, "favorite_menu": 1, "plan_json": 1, "created_at": 1}
+        ).sort("created_at", -1).limit(1)
     )
 
     if not docs:
@@ -432,6 +487,7 @@ def cargar_plan_15_dias(menu_set_id):
         doc["id"] = str(doc["_id"])
 
     return pd.DataFrame(docs)
+
 
 # ==================== HELPERS DE TEXTO ====================
 def strip_accents(text: str) -> str:
@@ -1045,6 +1101,9 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+if not mongo_available:
+    st.warning("⚠️ No hay conexión con MongoDB Atlas. Puedes navegar la app, pero no guardar ni cargar datos hasta arreglar la conexión.")
+
 # ==================== PAGINAS ====================
 if opcion == "Inicio":
     planes = cargar_planes()
@@ -1112,25 +1171,43 @@ elif opcion == "Subir plan":
     uploaded_pdf = st.file_uploader("Sube el PDF", type=["pdf"])
 
     if uploaded_pdf is not None:
-        progress = st.progress(0, text="Preparando archivo...")
-        status_box = st.empty()
+        current_file_name = uploaded_pdf.name
 
-        progress.progress(20, text="Guardando PDF...")
-        pdf_path = guardar_pdf(uploaded_pdf)
+        needs_processing = (
+            st.session_state.uploaded_pdf_name != current_file_name
+            or st.session_state.uploaded_menus is None
+            or st.session_state.uploaded_pdf_path is None
+        )
 
-        progress.progress(55, text="Leyendo contenido...")
-        status_box.info("Detectando páginas de menú...")
-        menus_extraidos = extract_menus_from_pdf(pdf_path)
+        if needs_processing:
+            progress = st.progress(0, text="Preparando archivo...")
+            status_box = st.empty()
 
-        progress.progress(85, text="Organizando comidas...")
-        total_menus = len(menus_extraidos)
+            progress.progress(20, text="Guardando PDF...")
+            pdf_path = guardar_pdf(uploaded_pdf)
 
-        progress.progress(100, text="Todo listo")
-        status_box.success(f"Se detectaron {total_menus} menús.")
+            progress.progress(55, text="Leyendo contenido...")
+            status_box.info("Detectando páginas de menú...")
+            menus_extraidos = extract_menus_from_pdf(pdf_path)
+
+            progress.progress(85, text="Organizando comidas...")
+            total_menus = len(menus_extraidos)
+
+            progress.progress(100, text="Todo listo")
+            status_box.success(f"Se detectaron {total_menus} menús.")
+
+            st.session_state.uploaded_pdf_name = current_file_name
+            st.session_state.uploaded_pdf_path = pdf_path
+            st.session_state.uploaded_menus = menus_extraidos
+
+        pdf_path = st.session_state.uploaded_pdf_path
+        menus_extraidos = st.session_state.uploaded_menus
 
         if not menus_extraidos:
             st.error("No se detectaron menús en el PDF.")
         else:
+            st.success(f"PDF subido correctamente. Se detectaron {len(menus_extraidos)} menús. Ahora puedes elegir tu menú favorito después de guardarlo.")
+
             for menu in menus_extraidos:
                 with st.expander(f"Menú {menu['menu_numero']} · página {menu['page_number']}"):
                     render_menu(menu)
@@ -1147,6 +1224,10 @@ elif opcion == "Subir plan":
                     '<div class="selection-banner">💗 Tu plan ya está listo. Ahora puedes ir a elegir tu menú favorito.</div>',
                     unsafe_allow_html=True,
                 )
+
+                st.session_state.uploaded_pdf_name = None
+                st.session_state.uploaded_pdf_path = None
+                st.session_state.uploaded_menus = None
 
             if not nombre_plan.strip():
                 st.warning("Escribe un nombre para habilitar el botón de guardar.")
@@ -1347,7 +1428,8 @@ elif opcion == "Lista del súper":
     st.markdown('</div>', unsafe_allow_html=True)
 
 elif opcion == "Historial":
-    st.markdown('<div class="section-title">Historial de planes</div>', unsafe_allow_html=True)
+    st.markdown('<div class="soft-card">', unsafe_allow_html=True)
+    st.markdown('<div class="section-title" style="margin-top:0;">Historial de planes</div>', unsafe_allow_html=True)
     st.markdown('<div class="section-subtitle">Consulta tus planes guardados, revisa menús y administra archivos.</div>', unsafe_allow_html=True)
 
     df = cargar_planes()
@@ -1358,36 +1440,36 @@ elif opcion == "Historial":
             menus = json.loads(row["menus_json"]) if row["menus_json"] else []
 
             with st.expander(f"📁 {row['nombre_plan']} · {row['fecha']}", expanded=False):
-                    st.write(f"**Total de menús:** {len(menus)}")
+                st.write(f"**Total de menús:** {len(menus)}")
 
-                    tabs = st.tabs([f"Menú {i + 1}" for i in range(len(menus))]) if menus else []
-                    for i, menu in enumerate(menus):
-                        with tabs[i]:
-                            render_menu(menu)
+                tabs = st.tabs([f"Menú {i + 1}" for i in range(len(menus))]) if menus else []
+                for i, menu in enumerate(menus):
+                    with tabs[i]:
+                        render_menu(menu)
 
-                    col1, col2 = st.columns(2)
+                col1, col2 = st.columns(2)
 
-                    with col1:
-                        if row["pdf_path"]:
-                            try:
-                                with open(row["pdf_path"], "rb") as f:
-                                    st.download_button(
-                                        label="📄 Descargar PDF",
-                                        data=f,
-                                        file_name=os.path.basename(row["pdf_path"]),
-                                        mime="application/pdf",
-                                        key=f"pdf_{row['id']}",
-                                        use_container_width=True,
+                with col1:
+                    if row["pdf_path"]:
+                        try:
+                            with open(row["pdf_path"], "rb") as f:
+                                st.download_button(
+                                    label="📄 Descargar PDF",
+                                    data=f,
+                                    file_name=os.path.basename(row["pdf_path"]),
+                                    mime="application/pdf",
+                                    key=f"pdf_{row['id']}",
+                                    use_container_width=True,
                                 )
-                            except Exception:
-                                st.warning("No se pudo abrir el PDF guardado.")
+                        except Exception:
+                            st.warning("No se pudo abrir el PDF guardado.")
 
-                    with col2:
-                        if st.button("🗑️ Eliminar plan", key=f"del_{row['id']}", use_container_width=True):
-                            eliminar_plan(row["id"])
-                            registrar_evento("plan_eliminado", row["nombre_plan"])
-                            st.success("Plan eliminado.")
-                            st.rerun()
+                with col2:
+                    if st.button("🗑️ Eliminar plan", key=f"del_{row['id']}", use_container_width=True):
+                        eliminar_plan(row["id"])
+                        registrar_evento("plan_eliminado", row["nombre_plan"])
+                        st.success("Plan eliminado.")
+                        st.rerun()
 
     st.markdown('</div>', unsafe_allow_html=True)
 
