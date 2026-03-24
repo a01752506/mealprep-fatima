@@ -37,7 +37,7 @@ st.markdown(
         --card: #FFFFFF;
         --border: #F0D9E2;
         --text: #2E2430;
-        --muted: #7D6872;
+        --muted: #6E5C66;
         --accent: #EBC7D4;
         --accent-strong: #DFA8BC;
         --accent-soft: #FAEEF3;
@@ -45,12 +45,40 @@ st.markdown(
 
     .stApp {
         background: linear-gradient(180deg, #FFF8FB 0%, #FFFDFD 100%);
+        color: var(--text) !important;
+    }
+
+    .stApp, .stApp * {
         color: var(--text);
+        -webkit-text-fill-color: var(--text);
     }
 
     section[data-testid="stSidebar"] {
-        background: #FFFDFE;
+        background: #FFFDFE !important;
         border-right: 1px solid var(--border);
+        color: var(--text) !important;
+    }
+
+    section[data-testid="stSidebar"] * {
+        color: var(--text) !important;
+        -webkit-text-fill-color: var(--text) !important;
+        opacity: 1 !important;
+    }
+
+    section[data-testid="stSidebar"] label,
+    section[data-testid="stSidebar"] p,
+    section[data-testid="stSidebar"] span,
+    section[data-testid="stSidebar"] div {
+        color: var(--text) !important;
+        -webkit-text-fill-color: var(--text) !important;
+        opacity: 1 !important;
+    }
+
+    .stRadio label,
+    .stCheckbox label {
+        color: var(--text) !important;
+        -webkit-text-fill-color: var(--text) !important;
+        opacity: 1 !important;
     }
 
     .block-container {
@@ -62,13 +90,13 @@ st.markdown(
     .hero-title {
         font-size: 2.85rem;
         font-weight: 800;
-        color: var(--text);
+        color: var(--text) !important;
         letter-spacing: -0.04em;
         margin-bottom: 0.25rem;
     }
 
     .hero-subtitle {
-        color: var(--muted);
+        color: var(--muted) !important;
         font-size: 1.05rem;
         margin-bottom: 1.6rem;
     }
@@ -83,7 +111,7 @@ st.markdown(
     }
 
     .mini-card {
-        background: rgba(255,255,255,0.92);
+        background: rgba(255,255,255,0.96);
         border: 1px solid var(--border);
         border-radius: 22px;
         padding: 1.05rem 1.15rem;
@@ -91,13 +119,13 @@ st.markdown(
     }
 
     .metric-label {
-        color: var(--muted);
+        color: var(--muted) !important;
         font-size: 0.92rem;
         margin-bottom: 0.2rem;
     }
 
     .metric-value {
-        color: var(--text);
+        color: var(--text) !important;
         font-size: 1.8rem;
         font-weight: 800;
         line-height: 1.1;
@@ -106,12 +134,12 @@ st.markdown(
     .section-title {
         font-size: 1.35rem;
         font-weight: 800;
-        color: var(--text);
+        color: var(--text) !important;
         margin: 1rem 0 0.65rem 0;
     }
 
     .section-subtitle {
-        color: var(--muted);
+        color: var(--muted) !important;
         margin-bottom: 1rem;
     }
 
@@ -126,13 +154,13 @@ st.markdown(
     .meal-title {
         font-size: 0.98rem;
         font-weight: 700;
-        color: var(--text);
+        color: var(--text) !important;
         margin-top: 0.7rem;
         margin-bottom: 0.2rem;
     }
 
     .small-muted {
-        color: var(--muted);
+        color: var(--muted) !important;
         font-size: 0.93rem;
         line-height: 1.55;
     }
@@ -145,13 +173,13 @@ st.markdown(
     .question-title {
         font-size: 2rem;
         font-weight: 800;
-        color: var(--text);
+        color: var(--text) !important;
         margin-bottom: 0.35rem;
         letter-spacing: -0.03em;
     }
 
     .question-subtitle {
-        color: var(--muted);
+        color: var(--muted) !important;
         font-size: 1rem;
         max-width: 720px;
         margin: 0 auto;
@@ -180,7 +208,7 @@ st.markdown(
         display: inline-block;
         background: var(--accent-soft);
         border: 1px solid var(--border);
-        color: var(--text);
+        color: var(--text) !important;
         border-radius: 999px;
         padding: 0.28rem 0.68rem;
         font-size: 0.84rem;
@@ -194,7 +222,7 @@ st.markdown(
         border-radius: 18px;
         padding: 0.95rem 1rem;
         margin: 1rem 0 1.2rem 0;
-        color: var(--text);
+        color: var(--text) !important;
         font-weight: 700;
     }
 
@@ -209,7 +237,7 @@ st.markdown(
     }
 
     .day-label {
-        color: var(--muted);
+        color: var(--muted) !important;
         font-size: 0.86rem;
         margin-bottom: 0.2rem;
     }
@@ -217,14 +245,14 @@ st.markdown(
     .day-menu {
         font-size: 1rem;
         font-weight: 800;
-        color: var(--text);
+        color: var(--text) !important;
         margin-bottom: 0.3rem;
     }
 
     .check-category {
         font-size: 1.12rem;
         font-weight: 800;
-        color: var(--text);
+        color: var(--text) !important;
         margin: 1.1rem 0 0.65rem 0;
         padding-top: 0.25rem;
     }
@@ -249,12 +277,12 @@ st.markdown(
 
     .check-name {
         font-weight: 700;
-        color: var(--text);
+        color: var(--text) !important;
         margin-bottom: 0.1rem;
     }
 
     .check-qty {
-        color: var(--muted);
+        color: var(--muted) !important;
         font-size: 0.9rem;
     }
 
@@ -263,7 +291,7 @@ st.markdown(
         border: 1px solid var(--border);
         border-radius: 16px;
         padding: 0.85rem 1rem;
-        color: var(--muted);
+        color: var(--muted) !important;
         font-size: 0.92rem;
         margin-bottom: 1rem;
     }
@@ -296,6 +324,8 @@ st.markdown(
         border-radius: 14px !important;
         border: 1px solid var(--border) !important;
         background: #FFFFFF !important;
+        color: var(--text) !important;
+        -webkit-text-fill-color: var(--text) !important;
     }
 
     .stProgress > div > div > div > div {
@@ -305,42 +335,6 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-
-if not os.path.exists(PDF_FOLDER):
-    os.makedirs(PDF_FOLDER)
-
-# ==================== SESION ====================
-def init_session_state():
-    defaults = {
-    "authenticated": False,
-    "show_dev": False,
-    "selected_favorite_by_plan": {},
-    "shopping_checks": {},
-    "uploaded_pdf_name": None,
-    "uploaded_pdf_path": None,
-    "uploaded_menus": None,
-    }
-    for key, value in defaults.items():
-        if key not in st.session_state:
-            st.session_state[key] = value
-
-init_session_state()
-
-if not st.session_state.authenticated:
-    st.markdown('<div class="hero-title">🔒 Acceso privado</div>', unsafe_allow_html=True)
-    st.markdown('<div class="hero-subtitle">Esta app es solo para uso autorizado.</div>', unsafe_allow_html=True)
-
-    password_input = st.text_input("Ingresa la contraseña", type="password")
-
-    if st.button("Entrar", use_container_width=True):
-        if password_input == PUBLIC_ACCESS_PASSWORD:
-            st.session_state.authenticated = True
-            st.rerun()
-        else:
-            st.error("Contraseña incorrecta")
-
-    st.stop()
-
 # ==================== DB ====================
 @st.cache_resource
 def get_mongo_db():
