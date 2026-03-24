@@ -343,18 +343,15 @@ if not st.session_state.authenticated:
 def get_mongo_db():
     client = MongoClient(
         MONGO_URI,
-        serverSelectionTimeoutMS=10000,
-        connectTimeoutMS=10000,
-        socketTimeoutMS=10000,
+        serverSelectionTimeoutMS=5000,
+        connectTimeoutMS=5000,
+        socketTimeoutMS=5000,
         maxPoolSize=10
     )
+    client.admin.command("ping")
     return client[MONGO_DB_NAME]
 
 db = get_mongo_db()
-
-menu_sets_collection = db["menu_sets"]
-usage_logs_collection = db["usage_logs"]
-generated_plans_collection = db["generated_plans"]
 
 menu_sets_collection = db["menu_sets"]
 usage_logs_collection = db["usage_logs"]
@@ -377,8 +374,10 @@ def guardar_plan(nombre_plan, pdf_path, menus_json):
         "menus_json": menus_json,
         "fecha": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     })
+    st.cache_data.clear()
 
 
+@st.cache_data(ttl=30)
 def cargar_planes():
     docs = list(menu_sets_collection.find().sort("fecha", -1))
     if not docs:
@@ -393,8 +392,10 @@ def cargar_planes():
 def eliminar_plan(plan_id):
     menu_sets_collection.delete_one({"_id": ObjectId(plan_id)})
     generated_plans_collection.delete_many({"menu_set_id": plan_id})
+    st.cache_data.clear()
 
 
+@st.cache_data(ttl=30)
 def cargar_logs():
     docs = list(usage_logs_collection.find().sort("timestamp", -1))
     if not docs:
@@ -415,8 +416,10 @@ def guardar_plan_15_dias(menu_set_id, favorite_menu, plan_data):
         "plan_json": json.dumps(plan_data, ensure_ascii=False),
         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     })
+    st.cache_data.clear()
 
 
+@st.cache_data(ttl=30)
 def cargar_plan_15_dias(menu_set_id):
     docs = list(
         generated_plans_collection.find({"menu_set_id": menu_set_id}).sort("created_at", -1).limit(1)
