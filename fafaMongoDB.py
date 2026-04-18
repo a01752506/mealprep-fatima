@@ -29,313 +29,144 @@ st.set_page_config(
 )
 
 # ==================== ESTILO ====================
-st.markdown(
-    """
-    <style>
-    :root {
-        --bg: #FFFDF5;
-        --card: #FFFFFF;
-        --border: #F2E6B8;
-        --text: #4A4032;
-        --muted: #6B5E4A;
+st.markdown("""
+<style>
 
-        --accent: #F6E7B2;
-          --accent-strong: #E6C75A;
-            --accent-soft: #FFF7D6;
+:root {
+    --bg: #FFF9E6;
+    --card: #FFFFFF;
+    --border: #EEDB8A;
+    --text: #4A4032;
+    --muted: #6B5E4A;
+
+    --accent: #FFE08A;
+    --accent-strong: #E6B800;
+    --accent-soft: #FFF4CC;
 }
 
-    .stApp {
-        background: linear-gradient(180deg, #FFF8FB 0%, #FFFDFD 100%);
-        color: var(--text) !important;
-    }
+/* Fondo general */
+.stApp {
+    background-color: var(--bg);
+    color: var(--text);
+}
 
-    .stApp, .stApp * {
-        color: var(--text);
-        -webkit-text-fill-color: var(--text);
-    }
+/* Sidebar */
+section[data-testid="stSidebar"] {
+    background-color: var(--accent-soft);
+    border-right: 1px solid var(--border);
+}
 
-    section[data-testid="stSidebar"] {
-        background: #FFFDFE !important;
-        border-right: 1px solid var(--border);
-        color: var(--text) !important;
-    }
+/* Tarjetas principales */
+.soft-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 16px;
+}
 
-    section[data-testid="stSidebar"] * {
-        color: var(--text) !important;
-        -webkit-text-fill-color: var(--text) !important;
-        opacity: 1 !important;
-    }
+/* Tarjetas pequeñas */
+.mini-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+}
 
-    section[data-testid="stSidebar"] label,
-    section[data-testid="stSidebar"] p,
-    section[data-testid="stSidebar"] span,
-    section[data-testid="stSidebar"] div {
-        color: var(--text) !important;
-        -webkit-text-fill-color: var(--text) !important;
-        opacity: 1 !important;
-    }
+/* Títulos */
+.section-title {
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+}
 
-    .stRadio label,
-    .stCheckbox label {
-        color: var(--text) !important;
-        -webkit-text-fill-color: var(--text) !important;
-        opacity: 1 !important;
-    }
+.section-subtitle {
+    color: var(--muted);
+    margin-bottom: 20px;
+}
 
-    .block-container {
-        max-width: 1180px;
-        padding-top: 1.8rem;
-        padding-bottom: 3rem;
-    }
+/* Botones */
+button[kind="primary"] {
+    background-color: var(--accent);
+    border: none;
+    color: #4A4032;
+    border-radius: 10px;
+    font-weight: 600;
+}
 
-    .hero-title {
-        font-size: 2.85rem;
-        font-weight: 800;
-        color: var(--text) !important;
-        letter-spacing: -0.04em;
-        margin-bottom: 0.25rem;
-    }
+button[kind="primary"]:hover {
+    background-color: var(--accent-strong);
+}
 
-    .hero-subtitle {
-        color: var(--muted) !important;
-        font-size: 1.05rem;
-        margin-bottom: 1.6rem;
-    }
+/* Selectbox */
+div[data-baseweb="select"] {
+    border-radius: 10px;
+}
 
-    .soft-card {
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 24px;
-        padding: 1.25rem;
-        box-shadow: 0 10px 30px rgba(223, 168, 188, 0.10);
-        margin-bottom: 1rem;
-    }
+/* Pills (Desayuno, Comida, etc) */
+.small-pill {
+    background-color: var(--accent-soft);
+    color: var(--text);
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 12px;
+    margin-right: 6px;
+}
 
-    .mini-card {
-        background: rgba(255,255,255,0.96);
-        border: 1px solid var(--border);
-        border-radius: 22px;
-        padding: 1.05rem 1.15rem;
-        box-shadow: 0 6px 22px rgba(223, 168, 188, 0.08);
-    }
+/* Banner */
+.selection-banner {
+    background-color: var(--accent-soft);
+    border: 1px solid var(--border);
+    padding: 14px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+}
 
-    .metric-label {
-        color: var(--muted) !important;
-        font-size: 0.92rem;
-        margin-bottom: 0.2rem;
-    }
+/* Day cards (plan 15 días) */
+.day-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
 
-    .metric-value {
-        color: var(--text) !important;
-        font-size: 1.8rem;
-        font-weight: 800;
-        line-height: 1.1;
-    }
+.day-label {
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 4px;
+}
 
-    .section-title {
-        font-size: 1.35rem;
-        font-weight: 800;
-        color: var(--text) !important;
-        margin: 1rem 0 0.65rem 0;
-    }
+.day-menu {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+}
 
-    .section-subtitle {
-        color: var(--muted) !important;
-        margin-bottom: 1rem;
-    }
+.small-muted {
+    font-size: 12px;
+    color: var(--muted);
+}
 
-    .menu-preview {
-        background: #FFFDFE;
-        border: 1px solid #F3E3EA;
-        border-radius: 18px;
-        padding: 1rem;
-        margin-top: 0.7rem;
-    }
+/* Inputs */
+input, textarea {
+    border-radius: 10px !important;
+}
 
-    .meal-title {
-        font-size: 0.98rem;
-        font-weight: 700;
-        color: var(--text) !important;
-        margin-top: 0.7rem;
-        margin-bottom: 0.2rem;
-    }
+/* Tabs */
+button[role="tab"] {
+    font-weight: 600;
+    color: var(--muted);
+}
 
-    .small-muted {
-        color: var(--muted) !important;
-        font-size: 0.93rem;
-        line-height: 1.55;
-    }
+button[role="tab"][aria-selected="true"] {
+    color: var(--text);
+    border-bottom: 2px solid var(--accent-strong);
+}
 
-    .question-wrap {
-        text-align: center;
-        padding: 1.2rem 0.6rem 0.8rem 0.6rem;
-    }
-
-    .question-title {
-        font-size: 2rem;
-        font-weight: 800;
-        color: var(--text) !important;
-        margin-bottom: 0.35rem;
-        letter-spacing: -0.03em;
-    }
-
-    .question-subtitle {
-        color: var(--muted) !important;
-        font-size: 1rem;
-        max-width: 720px;
-        margin: 0 auto;
-        line-height: 1.55;
-    }
-
-    .menu-card-selected {
-        background: linear-gradient(180deg, #FFF8FB 0%, #FFF1F6 100%);
-        border: 2px solid var(--accent-strong);
-        border-radius: 24px;
-        padding: 1.1rem;
-        box-shadow: 0 12px 30px rgba(223, 168, 188, 0.18);
-        margin-bottom: 1rem;
-    }
-
-    .menu-card-default {
-        background: #FFFFFF;
-        border: 1px solid var(--border);
-        border-radius: 24px;
-        padding: 1.1rem;
-        box-shadow: 0 8px 24px rgba(223, 168, 188, 0.08);
-        margin-bottom: 1rem;
-    }
-
-    .tag {
-        display: inline-block;
-        background: var(--accent-soft);
-        border: 1px solid var(--border);
-        color: var(--text) !important;
-        border-radius: 999px;
-        padding: 0.28rem 0.68rem;
-        font-size: 0.84rem;
-        margin-right: 0.35rem;
-        margin-bottom: 0.4rem;
-    }
-
-    .selection-banner {
-        background: linear-gradient(90deg, #FBEAF1 0%, #FFF7FA 100%);
-        border: 1px solid var(--accent-strong);
-        border-radius: 18px;
-        padding: 0.95rem 1rem;
-        margin: 1rem 0 1.2rem 0;
-        color: var(--text) !important;
-        font-weight: 700;
-    }
-
-    .day-card {
-        background: #FFFFFF;
-        border: 1px solid var(--border);
-        border-radius: 18px;
-        padding: 1rem;
-        min-height: 112px;
-        box-shadow: 0 6px 18px rgba(223, 168, 188, 0.08);
-        margin-bottom: 0.9rem;
-    }
-
-    .day-label {
-        color: var(--muted) !important;
-        font-size: 0.86rem;
-        margin-bottom: 0.2rem;
-    }
-
-    .day-menu {
-        font-size: 1rem;
-        font-weight: 800;
-        color: var(--text) !important;
-        margin-bottom: 0.3rem;
-    }
-
-    .check-category {
-        font-size: 1.12rem;
-        font-weight: 800;
-        color: var(--text) !important;
-        margin: 1.1rem 0 0.65rem 0;
-        padding-top: 0.25rem;
-    }
-
-    .check-item {
-        background: #FFFFFF;
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 0.8rem 0.9rem;
-        margin-bottom: 0.55rem;
-        box-shadow: 0 4px 14px rgba(223, 168, 188, 0.06);
-    }
-
-    .check-item-done {
-        background: #FBF6F8;
-        border: 1px solid #E9D7DE;
-        border-radius: 16px;
-        padding: 0.8rem 0.9rem;
-        margin-bottom: 0.55rem;
-        opacity: 0.75;
-    }
-
-    .check-name {
-        font-weight: 700;
-        color: var(--text) !important;
-        margin-bottom: 0.1rem;
-    }
-
-    .check-qty {
-        color: var(--muted) !important;
-        font-size: 0.9rem;
-    }
-
-    .note-box {
-        background: #FFF7FA;
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 0.85rem 1rem;
-        color: var(--muted) !important;
-        font-size: 0.92rem;
-        margin-bottom: 1rem;
-    }
-
-    .stButton > button,
-    .stDownloadButton > button {
-        border-radius: 16px !important;
-        border: 1px solid var(--border) !important;
-        background: #FFFFFF !important;
-        color: var(--text) !important;
-        font-weight: 700 !important;
-        box-shadow: 0 6px 18px rgba(223, 168, 188, 0.08) !important;
-        min-height: 2.9rem !important;
-    }
-
-    .stButton > button:hover,
-    .stDownloadButton > button:hover {
-        background: var(--accent-soft) !important;
-        border-color: var(--accent-strong) !important;
-    }
-
-    .stRadio > div {
-        gap: 0.7rem;
-    }
-
-    div[data-baseweb="select"] > div,
-    .stTextInput input,
-    .stTextArea textarea,
-    .stNumberInput input {
-        border-radius: 14px !important;
-        border: 1px solid var(--border) !important;
-        background: #FFFFFF !important;
-        color: var(--text) !important;
-        -webkit-text-fill-color: var(--text) !important;
-    }
-
-    .stProgress > div > div > div > div {
-        background-color: #E5AFC3 !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
+</style>
+""", unsafe_allow_html=True)
 
 if not os.path.exists(PDF_FOLDER):
     os.makedirs(PDF_FOLDER)
