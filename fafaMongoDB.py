@@ -1075,31 +1075,61 @@ def generate_weighted_15_day_plan(menus, favorite_menu_number, seed=None):
     if favorite_menu_number not in menu_numbers:
         favorite_menu_number = menu_numbers[0]
 
-    counts = {num: 3 for num in menu_numbers}
-    counts[favorite_menu_number] += 3
+    total_days = 15
+    num_menus = len(menu_numbers)
 
-    total = sum(counts.values())
+    # Caso simple: si solo hay un menú, se repite
+    if num_menus == 1:
+        return [{"dia": i + 1, "menu_numero": menu_numbers[0]} for i in range(total_days)]
 
-    while total < 15:
-        for num in menu_numbers:
-            if total < 15:
-                counts[num] += 1
-                total += 1
+    # Queremos que el favorito tenga prioridad, pero sin exagerar
+    # Regla:
+    # - si hay 4 menús, favorito ≈ 6 días
+    # - si hay 3 menús, favorito ≈ 6 días
+    # - si hay 2 menús, favorito ≈ 8 días
+    if num_menus >= 3:
+        favorite_count = 6
+    else:
+        favorite_count = 8
 
-    while total > 15:
-        for num in menu_numbers:
-            if num != favorite_menu_number and counts[num] > 1 and total > 15:
-                counts[num] -= 1
-                total -= 1
+    remaining_days = total_days - favorite_count
+    other_menus = [num for num in menu_numbers if num != favorite_menu_number]
 
+    counts = {num: 0 for num in menu_numbers}
+    counts[favorite_menu_number] = favorite_count
+
+    # Repartir los días restantes entre los otros menús de forma equilibrada
+    base_count = remaining_days // len(other_menus)
+    extra = remaining_days % len(other_menus)
+
+    for i, num in enumerate(other_menus):
+        counts[num] = base_count + (1 if i < extra else 0)
+
+    # Construir secuencia
     sequence = []
     for num, qty in counts.items():
         sequence.extend([num] * qty)
 
     rng = random.Random(seed)
-    rng.shuffle(sequence)
 
-    return [{"dia": i + 1, "menu_numero": menu_number} for i, menu_number in enumerate(sequence[:15])]
+    # Mezclar varias veces hasta evitar demasiadas repeticiones seguidas
+    for _ in range(100):
+        rng.shuffle(sequence)
+        max_consecutive = 1
+        current_streak = 1
+
+        for i in range(1, len(sequence)):
+            if sequence[i] == sequence[i - 1]:
+                current_streak += 1
+                max_consecutive = max(max_consecutive, current_streak)
+            else:
+                current_streak = 1
+
+        # Aceptamos la secuencia si no hay más de 2 iguales seguidos
+        if max_consecutive <= 2:
+            break
+
+    return [{"dia": i + 1, "menu_numero": menu_number} for i, menu_number in enumerate(sequence)]
 
 # ==================== SIDEBAR ====================
 with st.sidebar:
@@ -1114,6 +1144,7 @@ with st.sidebar:
             "Elegir menú favorito",
             "Mi plan de 15 días",
             "Lista del súper",
+            "Ejercicio",
             "Historial",
             "Dashboard",
         ],
@@ -1337,7 +1368,7 @@ elif opcion == "Elegir menú favorito":
 elif opcion == "Mi plan de 15 días":
     st.markdown('<div class="soft-card">', unsafe_allow_html=True)
     st.markdown('<div class="section-title" style="margin-top:0;">Mi plan de 15 días</div>', unsafe_allow_html=True)
-    st.markdown('<div class="section-subtitle">Aquí solo ves la planeación ya armada, sin saturar la pantalla de selección.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-subtitle">Aquí puedes visualizar y ajustar tu planeación según tu rutina real.</div>', unsafe_allow_html=True)
 
     df = cargar_planes()
     if df.empty:
@@ -1349,7 +1380,13 @@ elif opcion == "Mi plan de 15 días":
             format_func=lambda x: df[df["id"] == x]["nombre_plan"].values[0],
             key="view_plan_selector",
         )
+
+        # 🔹 IMPORTANTE: necesitamos menus aquí
+        row = df[df["id"] == selected_id].iloc[0]
+        menus = json.loads(row["menus_json"]) if row["menus_json"] else []
+
         generated_df = cargar_plan_15_dias(selected_id)
+
         if generated_df.empty:
             st.warning("Primero elige el menú favorito y genera el plan de 15 días.")
         else:
@@ -1361,13 +1398,44 @@ elif opcion == "Mi plan de 15 días":
                 unsafe_allow_html=True,
             )
 
+            # 🔥 NUEVO: explicación UX
+            st.markdown(
+                '<div class="selection-banner">✏️ Puedes personalizar tu plan cambiando el menú de cualquier día según tu rutina.</div>',
+                unsafe_allow_html=True,
+            )
+
+            menu_options = [menu["menu_numero"] for menu in menus]
+            edited_plan = []
+
             cols = st.columns(3)
+
             for idx, day in enumerate(plan_data):
                 with cols[idx % 3]:
+
+                    current_menu = day["menu_numero"]
+
+                    new_menu = st.selectbox(
+                        f"Día {day['dia']}",
+                        menu_options,
+                        index=menu_options.index(current_menu),
+                        key=f"edit_day_{day['dia']}"
+                    )
+
+                    edited_plan.append({
+                        "dia": day["dia"],
+                        "menu_numero": new_menu
+                    })
+
                     st.markdown(
-                        f'<div class="day-card"><div class="day-label">Día {day["dia"]}</div><div class="day-menu">Menú {day["menu_numero"]}</div><div class="small-muted">Distribución sugerida para que la planeación se sienta balanceada y práctica.</div></div>',
+                        f'<div class="small-muted">Menú seleccionado para este día.</div>',
                         unsafe_allow_html=True,
                     )
+
+            # 💾 GUARDAR CAMBIOS
+            if st.button("💾 Guardar mi versión personalizada", use_container_width=True):
+                guardar_plan_15_dias(selected_id, favorite_menu, edited_plan)
+                st.success("Plan actualizado correctamente ✨")
+                st.rerun()
 
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -1454,6 +1522,62 @@ elif opcion == "Lista del súper":
                                 f'<div class="{applied_class}"><div class="check-name">{name}</div><div class="check-qty">{display_qty}</div></div>',
                                 unsafe_allow_html=True,
                             )
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+elif opcion == "Ejercicio":
+    st.markdown('<div class="soft-card">', unsafe_allow_html=True)
+    st.markdown('<div class="section-title" style="margin-top:0;">Registro de ejercicio</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="section-subtitle">Aquí puedes registrar los ejercicios que vas haciendo para llevar mejor tu progreso.</div>',
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        '<div class="selection-banner">🏋️‍♀️ Registra el nombre del ejercicio, el peso usado y la fecha. No importa si lo capturas después del día en que lo hiciste.</div>',
+        unsafe_allow_html=True,
+    )
+
+    nombre_ejercicio = st.text_input(
+        "Nombre del ejercicio",
+        placeholder="Ej. Sentadilla Smith"
+    )
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        peso = st.number_input(
+            "Peso",
+            min_value=0.0,
+            step=0.5,
+            format="%.2f"
+        )
+
+    with col2:
+        unidad = st.selectbox(
+            "Unidad",
+            ["kg", "lbs"]
+        )
+
+    fecha_ejercicio = st.date_input("Fecha del ejercicio")
+
+    notas = st.text_area(
+        "Notas (opcional)",
+        placeholder="Ej. Me costó más esta serie, subí peso, etc."
+    )
+
+    if st.button("💾 Guardar ejercicio", use_container_width=True):
+        if not nombre_ejercicio.strip():
+            st.warning("Escribe el nombre del ejercicio.")
+        else:
+            st.success("Ejercicio capturado correctamente ✨")
+            st.write({
+                "ejercicio": nombre_ejercicio.strip(),
+                "peso": peso,
+                "unidad": unidad,
+                "fecha": str(fecha_ejercicio),
+                "notas": notas.strip()
+            })
 
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -1545,9 +1669,6 @@ elif opcion == "Dashboard":
         planes_por_fecha.columns = ["Fecha", "Planes"]
         st.markdown("### 📅 Planes guardados por fecha")
         st.dataframe(planes_por_fecha, use_container_width=True, hide_index=True)
-
-        if not planes_por_fecha.empty:
-            st.markdown("### 📈 Planes guardados por fecha")
 
         if ingredient_counter:
             top_ingredientes = pd.DataFrame(
