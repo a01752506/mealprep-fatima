@@ -395,10 +395,12 @@ if mongo_available:
     menu_sets_collection = db["menu_sets"]
     usage_logs_collection = db["usage_logs"]
     generated_plans_collection = db["generated_plans"]
+    ejercicios_collection = db["ejercicios"]
 else:
     menu_sets_collection = None
     usage_logs_collection = None
     generated_plans_collection = None
+    ejercicios_collection = None
 
 
 def registrar_evento(tipo: str, detalle: str):
@@ -497,6 +499,23 @@ def guardar_plan_15_dias(menu_set_id, favorite_menu, plan_data):
     })
     st.cache_data.clear()
 
+def guardar_ejercicio(nombre_ejercicio, peso, unidad, fecha_ejercicio, notas=""):
+    if not mongo_available:
+        st.error("No se pudo conectar a MongoDB.")
+        return
+
+    peso_kg = convertir_a_kg(peso, unidad)
+
+    ejercicios_collection.insert_one({
+        "nombre_ejercicio": nombre_ejercicio,
+        "peso_original": peso,
+        "unidad_original": unidad,
+        "peso_kg": peso_kg,
+        "fecha": str(fecha_ejercicio),
+        "notas": notas,
+        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    })
+    st.cache_data.clear()
 
 @st.cache_data(ttl=30)
 def cargar_plan_15_dias(menu_set_id):
@@ -512,6 +531,40 @@ def cargar_plan_15_dias(menu_set_id):
 
     if not docs:
         return pd.DataFrame(columns=["menu_set_id", "favorite_menu", "plan_json", "created_at"])
+
+    for doc in docs:
+        doc["id"] = str(doc["_id"])
+
+    return pd.DataFrame(docs)
+
+@st.cache_data(ttl=30)
+def cargar_ejercicios():
+    if not mongo_available:
+        return pd.DataFrame(columns=[
+            "nombre_ejercicio", "peso_original", "unidad_original",
+            "peso_kg", "fecha", "notas", "created_at"
+        ])
+
+    docs = list(
+        ejercicios_collection.find(
+            {},
+            {
+                "nombre_ejercicio": 1,
+                "peso_original": 1,
+                "unidad_original": 1,
+                "peso_kg": 1,
+                "fecha": 1,
+                "notas": 1,
+                "created_at": 1
+            }
+        ).sort("fecha", -1)
+    )
+
+    if not docs:
+        return pd.DataFrame(columns=[
+            "nombre_ejercicio", "peso_original", "unidad_original",
+            "peso_kg", "fecha", "notas", "created_at"
+        ])
 
     for doc in docs:
         doc["id"] = str(doc["_id"])
@@ -574,6 +627,11 @@ def should_skip_line(line: str) -> bool:
         return True
 
     return any(b in low for b in basura)
+
+def convertir_a_kg(peso, unidad):
+    if unidad == "lbs":
+        return round(peso * 0.453592, 2)
+    return round(peso, 2)
 
 
 # ==================== PDF ====================
@@ -1566,21 +1624,22 @@ elif opcion == "Ejercicio":
         "Notas (opcional)",
         placeholder="Ej. Me costó más esta serie, subí peso, etc."
     )
-
+            
     if st.button("💾 Guardar entrenamiento", use_container_width=True):
         if not nombre_ejercicio.strip():
-         st.warning("Escribe el nombre del ejercicio.")
+            st.warning("Escribe el nombre del ejercicio.")
         elif peso == 0:
-         st.warning("Agrega un peso válido.")
+            st.warning("Agrega un peso válido.")
         else:
-            st.success("Ejercicio capturado correctamente ✨")
-            st.write({
-                "ejercicio": nombre_ejercicio.strip(),
-                "peso": peso,
-                "unidad": unidad,
-                "fecha": str(fecha_ejercicio),
-                "notas": notas.strip()
-             })
+            guardar_ejercicio(
+                nombre_ejercicio=nombre_ejercicio.strip(),
+                peso=peso,
+                unidad=unidad,
+                fecha_ejercicio=fecha_ejercicio,
+                notas=notas.strip()
+            )
+            registrar_evento("ejercicio_guardado", nombre_ejercicio.strip())
+            st.success("Ejercicio guardado correctamente ✨")
 
     st.markdown('</div>', unsafe_allow_html=True)
 
