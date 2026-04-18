@@ -1158,7 +1158,7 @@ with st.sidebar:
 # ==================== HEADER ====================
 st.markdown('<div class="hero-title">Meal Prep Planner</div>', unsafe_allow_html=True)
 st.markdown(
-    '<div class="hero-subtitle">Sube la dieta, pregúntale a Fátima cuál es su menú favorito y convierte la planeación en una lista del súper mucho más útil.</div>',
+    '<div class="hero-subtitle">Sube tu dieta, selecciona tu menú favorito y convierte la planeación en una lista del súper mucho más útil.</div>',
     unsafe_allow_html=True,
 )
 
@@ -1549,8 +1549,9 @@ elif opcion == "Ejercicio":
         peso = st.number_input(
             "Peso",
             min_value=0.0,
+            value= None,
+            placeholder="Ej. 20",
             step=0.5,
-            format="%.2f"
         )
 
     with col2:
@@ -1566,9 +1567,11 @@ elif opcion == "Ejercicio":
         placeholder="Ej. Me costó más esta serie, subí peso, etc."
     )
 
-    if st.button("💾 Guardar ejercicio", use_container_width=True):
+    if st.button("💾 Guardar entrenamiento", use_container_width=True):
         if not nombre_ejercicio.strip():
-            st.warning("Escribe el nombre del ejercicio.")
+         st.warning("Escribe el nombre del ejercicio.")
+        elif peso == 0:
+         st.warning("Agrega un peso válido.")
         else:
             st.success("Ejercicio capturado correctamente ✨")
             st.write({
@@ -1577,7 +1580,7 @@ elif opcion == "Ejercicio":
                 "unidad": unidad,
                 "fecha": str(fecha_ejercicio),
                 "notas": notas.strip()
-            })
+             })
 
     st.markdown('</div>', unsafe_allow_html=True)
 
