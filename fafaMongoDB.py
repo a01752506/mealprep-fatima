@@ -33,15 +33,16 @@ st.markdown(
     """
     <style>
     :root {
-        --bg: #FFF8FB;
+        --bg: #FFFDF5;
         --card: #FFFFFF;
-        --border: #F0D9E2;
-        --text: #2E2430;
-        --muted: #6E5C66;
-        --accent: #EBC7D4;
-        --accent-strong: #DFA8BC;
-        --accent-soft: #FAEEF3;
-    }
+        --border: #F2E6B8;
+        --text: #4A4032;
+        --muted: #6B5E4A;
+
+        --accent: #F6E7B2;
+          --accent-strong: #E6C75A;
+            --accent-soft: #FFF7D6;
+}
 
     .stApp {
         background: linear-gradient(180deg, #FFF8FB 0%, #FFFDFD 100%);
@@ -1694,91 +1695,134 @@ elif opcion == "Dashboard":
     st.markdown('<div class="section-subtitle">Visualizaciones separadas del historial para que todo se sienta más claro.</div>', unsafe_allow_html=True)
 
     df = cargar_planes()
-    if df.empty:
-        st.info("Todavía no hay datos suficientes para mostrar visualizaciones.")
-    else:
-        total_planes = len(df)
-        total_menus = 0
-        ingredient_counter = defaultdict(int)
-        category_counter = defaultdict(int)
+    ej_df = cargar_ejercicios()
 
-        for _, row in df.iterrows():
-            menus = json.loads(row["menus_json"]) if row["menus_json"] else []
-            total_menus += len(menus)
+    tab1, tab2 = st.tabs(["🍽️ Nutrición", "🏋️‍♀️ Ejercicio"])
 
-            for menu in menus:
-                for section in ["desayuno", "colacion_1", "comida", "colacion_2", "cena"]:
-                    text = menu.get(section, "")
-                    for ingredient, unit, qty in extract_ingredients_from_text(text):
-                        ingredient_counter[ingredient] += 1
-                        category_counter[categorize_ingredient(ingredient)] += 1
+    # ==================== TAB NUTRICIÓN ====================
+    with tab1:
 
-        c1, c2 = st.columns(2)
-        with c1:
-            st.markdown(
-                f'<div class="mini-card"><div class="metric-label">Planes guardados</div><div class="metric-value">{total_planes}</div></div>',
-                unsafe_allow_html=True,
-            )
-        with c2:
-            st.markdown(
-                f'<div class="mini-card"><div class="metric-label">Menús totales</div><div class="metric-value">{total_menus}</div></div>',
-                unsafe_allow_html=True,
-            )
+        if df.empty:
+            st.info("Todavía no hay datos suficientes para mostrar visualizaciones.")
+        else:
+            total_planes = len(df)
+            total_menus = 0
+            ingredient_counter = defaultdict(int)
+            category_counter = defaultdict(int)
 
-        df_chart = df.copy()
-        df_chart["fecha_dt"] = pd.to_datetime(df_chart["fecha"])
-        planes_por_fecha = df_chart.groupby(df_chart["fecha_dt"].dt.date).size().reset_index(name="Planes")
-        planes_por_fecha.columns = ["Fecha", "Planes"]
-        st.markdown("### 📅 Planes guardados por fecha")
-        st.dataframe(planes_por_fecha, use_container_width=True, hide_index=True)
+            for _, row in df.iterrows():
+                menus = json.loads(row["menus_json"]) if row["menus_json"] else []
+                total_menus += len(menus)
 
-        if ingredient_counter:
-            top_ingredientes = pd.DataFrame(
-                sorted(ingredient_counter.items(), key=lambda x: x[1], reverse=True)[:10],
-                columns=["Ingrediente", "Frecuencia"],
-            )
-            st.markdown("### 🥑 Top 10 ingredientes más usados")
-            st.bar_chart(top_ingredientes.set_index("Ingrediente"))
+                for menu in menus:
+                    for section in ["desayuno", "colacion_1", "comida", "colacion_2", "cena"]:
+                        text = menu.get(section, "")
+                        for ingredient, unit, qty in extract_ingredients_from_text(text):
+                            ingredient_counter[ingredient] += 1
+                            category_counter[categorize_ingredient(ingredient)] += 1
 
-        if category_counter:
-            top_categorias = pd.DataFrame(
-                sorted(category_counter.items(), key=lambda x: x[1], reverse=True),
-                columns=["Categoría", "Frecuencia"],
-            )
-            st.markdown("### 🧺 Categorías más usadas")
-            st.bar_chart(top_categorias.set_index("Categoría"))
-
-        generated_rows = []
-        for plan_id in df["id"].tolist():
-            generated_df = cargar_plan_15_dias(plan_id)
-            if not generated_df.empty:
-                plan_data = json.loads(generated_df.iloc[0]["plan_json"])
-                generated_rows.extend(plan_data)
-
-        if generated_rows:
-            freq = pd.DataFrame(generated_rows)["menu_numero"].value_counts().sort_index().rename_axis("Menú").reset_index(name="Frecuencia")
-            freq["Menú"] = freq["Menú"].astype(str).apply(lambda x: f"Menú {x}")
-            st.markdown("### 🍽️ Frecuencia de menús en las planeaciones de 15 días")
-            st.bar_chart(freq.set_index("Menú"))
-
-        favorite_counter = defaultdict(int)
-
-        for plan_id in df["id"].tolist():
-            generated_df = cargar_plan_15_dias(plan_id)
-            if not generated_df.empty:
-                fav = int(generated_df.iloc[0]["favorite_menu"])
-                favorite_counter[fav] += 1
-
-        if favorite_counter:
-            fav_df = pd.DataFrame(
-                sorted(favorite_counter.items(), key=lambda x: x[1], reverse=True),
-                columns=["Menú", "Veces seleccionado"]
+            c1, c2 = st.columns(2)
+            with c1:
+                st.markdown(
+                    f'<div class="mini-card"><div class="metric-label">Planes guardados</div><div class="metric-value">{total_planes}</div></div>',
+                    unsafe_allow_html=True,
                 )
-            
-            fav_df["Menú"] = fav_df["Menú"].apply(lambda x: f"Menú {x}")
-            
-            st.markdown("### 💗 Menús favoritos más seleccionados")
-            st.bar_chart(fav_df.set_index("Menú"))
+            with c2:
+                st.markdown(
+                    f'<div class="mini-card"><div class="metric-label">Menús totales</div><div class="metric-value">{total_menus}</div></div>',
+                    unsafe_allow_html=True,
+                )
+
+            df_chart = df.copy()
+            df_chart["fecha_dt"] = pd.to_datetime(df_chart["fecha"])
+            planes_por_fecha = df_chart.groupby(df_chart["fecha_dt"].dt.date).size().reset_index(name="Planes")
+            planes_por_fecha.columns = ["Fecha", "Planes"]
+
+            st.markdown("### 📅 Planes guardados por fecha")
+            st.dataframe(planes_por_fecha, use_container_width=True, hide_index=True)
+
+            if ingredient_counter:
+                top_ingredientes = pd.DataFrame(
+                    sorted(ingredient_counter.items(), key=lambda x: x[1], reverse=True)[:10],
+                    columns=["Ingrediente", "Frecuencia"],
+                )
+                st.markdown("### 🥑 Top 10 ingredientes más usados")
+                st.bar_chart(top_ingredientes.set_index("Ingrediente"))
+
+            if category_counter:
+                top_categorias = pd.DataFrame(
+                    sorted(category_counter.items(), key=lambda x: x[1], reverse=True),
+                    columns=["Categoría", "Frecuencia"],
+                )
+                st.markdown("### 🧺 Categorías más usadas")
+                st.bar_chart(top_categorias.set_index("Categoría"))
+
+            generated_rows = []
+            for plan_id in df["id"].tolist():
+                generated_df = cargar_plan_15_dias(plan_id)
+                if not generated_df.empty:
+                    plan_data = json.loads(generated_df.iloc[0]["plan_json"])
+                    generated_rows.extend(plan_data)
+
+            if generated_rows:
+                freq = pd.DataFrame(generated_rows)["menu_numero"].value_counts().sort_index().rename_axis("Menú").reset_index(name="Frecuencia")
+                freq["Menú"] = freq["Menú"].astype(str).apply(lambda x: f"Menú {x}")
+                st.markdown("### 🍽️ Frecuencia de menús en las planeaciones de 15 días")
+                st.bar_chart(freq.set_index("Menú"))
+
+            favorite_counter = defaultdict(int)
+
+            for plan_id in df["id"].tolist():
+                generated_df = cargar_plan_15_dias(plan_id)
+                if not generated_df.empty:
+                    fav = int(generated_df.iloc[0]["favorite_menu"])
+                    favorite_counter[fav] += 1
+
+            if favorite_counter:
+                fav_df = pd.DataFrame(
+                    sorted(favorite_counter.items(), key=lambda x: x[1], reverse=True),
+                    columns=["Menú", "Veces seleccionado"]
+                )
+
+                fav_df["Menú"] = fav_df["Menú"].apply(lambda x: f"Menú {x}")
+
+                st.markdown("### 💗 Menús favoritos más seleccionados")
+                st.bar_chart(fav_df.set_index("Menú"))
+
+    # ==================== TAB EJERCICIO ====================
+    with tab2:
+
+        st.markdown("## 🏋️‍♀️ Progreso de ejercicio")
+
+        if ej_df.empty:
+            st.info("Aún no hay ejercicios registrados.")
+        else:
+            ej_df["fecha"] = pd.to_datetime(ej_df["fecha"])
+
+            ejercicio_sel = st.selectbox(
+                "Selecciona un ejercicio",
+                sorted(ej_df["nombre_ejercicio"].unique())
+            )
+
+            df_filtrado = ej_df[ej_df["nombre_ejercicio"] == ejercicio_sel].copy()
+            df_filtrado = df_filtrado.sort_values("fecha")
+
+            # 🔥 selector kg / lbs
+            unidad_vista = st.radio("Unidad de visualización:", ["kg", "lbs"], horizontal=True)
+
+            if unidad_vista == "kg":
+                valores = df_filtrado["peso_kg"]
+            else:
+                valores = df_filtrado["peso_kg"] / 0.453592
+
+            st.markdown("### 📈 Progreso de peso")
+            st.line_chart(
+                df_filtrado.assign(peso=valores).set_index("fecha")["peso"]
+            )
+
+            st.markdown("### 📊 Frecuencia de ejercicios")
+            freq = ej_df["nombre_ejercicio"].value_counts().sort_values(ascending=False)
+            st.bar_chart(freq)
 
 if st.session_state.show_dev:
     st.markdown("---")
