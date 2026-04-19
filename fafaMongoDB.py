@@ -29,144 +29,323 @@ st.set_page_config(
 )
 
 # ==================== ESTILO ====================
-st.markdown("""
-<style>
+st.markdown(
+    """
+    <style>
+    :root {
+        --bg: #FFF9E6;
+        --card: #FFFFFF;
+        --border: #EEDB8A;
+        --text: #4A4032;
+        --muted: #6B5E4A;
+        --accent: #FFE08A;
+        --accent-strong: #E6B800;
+        --accent-soft: #FFF4CC;
+    }
 
-:root {
-    --bg: #FFF9E6;
-    --card: #FFFFFF;
-    --border: #EEDB8A;
-    --text: #4A4032;
-    --muted: #6B5E4A;
+    .stApp {
+        background: linear-gradient(180deg, #FFF9E6 0%, #FFFDF5 100%);
+        color: var(--text) !important;
+    }
 
-    --accent: #FFE08A;
-    --accent-strong: #E6B800;
-    --accent-soft: #FFF4CC;
-}
+    .stApp, .stApp * {
+        color: var(--text);
+        -webkit-text-fill-color: var(--text);
+    }
 
-/* Fondo general */
-.stApp {
-    background-color: var(--bg);
-    color: var(--text);
-}
+    section[data-testid="stSidebar"] {
+        background: #FFF4CC !important;
+        border-right: 1px solid var(--border);
+        color: var(--text) !important;
+    }
 
-/* Sidebar */
-section[data-testid="stSidebar"] {
-    background-color: var(--accent-soft);
-    border-right: 1px solid var(--border);
-}
+    section[data-testid="stSidebar"] * {
+        color: var(--text) !important;
+        -webkit-text-fill-color: var(--text) !important;
+        opacity: 1 !important;
+    }
 
-/* Tarjetas principales */
-.soft-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 24px;
-    margin-bottom: 16px;
-}
+    section[data-testid="stSidebar"] label,
+    section[data-testid="stSidebar"] p,
+    section[data-testid="stSidebar"] span,
+    section[data-testid="stSidebar"] div {
+        color: var(--text) !important;
+        -webkit-text-fill-color: var(--text) !important;
+        opacity: 1 !important;
+    }
 
-/* Tarjetas pequeñas */
-.mini-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px;
-}
+    .stRadio label,
+    .stCheckbox label {
+        color: var(--text) !important;
+        -webkit-text-fill-color: var(--text) !important;
+        opacity: 1 !important;
+    }
 
-/* Títulos */
-.section-title {
-    font-size: 30px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 4px;
-}
+    .block-container {
+        max-width: 1180px;
+        padding-top: 1.8rem;
+        padding-bottom: 3rem;
+    }
 
-.section-subtitle {
-    color: var(--muted);
-    margin-bottom: 20px;
-}
+    .hero-title {
+        font-size: 2.85rem;
+        font-weight: 800;
+        color: var(--text) !important;
+        letter-spacing: -0.04em;
+        margin-bottom: 0.25rem;
+    }
 
-/* Botones */
-button[kind="primary"] {
-    background-color: var(--accent);
-    border: none;
-    color: #4A4032;
-    border-radius: 10px;
-    font-weight: 600;
-}
+    .hero-subtitle {
+        color: var(--muted) !important;
+        font-size: 1.05rem;
+        margin-bottom: 1.6rem;
+        line-height: 1.5;
+    }
 
-button[kind="primary"]:hover {
-    background-color: var(--accent-strong);
-}
+    .soft-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        padding: 1.25rem;
+        box-shadow: 0 10px 30px rgba(230, 184, 0, 0.08);
+        margin-bottom: 1rem;
+    }
 
-/* Selectbox */
-div[data-baseweb="select"] {
-    border-radius: 10px;
-}
+    .mini-card {
+        background: rgba(255,255,255,0.96);
+        border: 1px solid var(--border);
+        border-radius: 22px;
+        padding: 1.05rem 1.15rem;
+        box-shadow: 0 6px 22px rgba(230, 184, 0, 0.06);
+    }
 
-/* Pills (Desayuno, Comida, etc) */
-.small-pill {
-    background-color: var(--accent-soft);
-    color: var(--text);
-    border-radius: 20px;
-    padding: 6px 12px;
-    font-size: 12px;
-    margin-right: 6px;
-}
+    .metric-label {
+        color: var(--muted) !important;
+        font-size: 0.92rem;
+        margin-bottom: 0.2rem;
+    }
 
-/* Banner */
-.selection-banner {
-    background-color: var(--accent-soft);
-    border: 1px solid var(--border);
-    padding: 14px;
-    border-radius: 12px;
-    margin-bottom: 16px;
-}
+    .metric-value {
+        color: var(--text) !important;
+        font-size: 1.8rem;
+        font-weight: 800;
+        line-height: 1.1;
+    }
 
-/* Day cards (plan 15 días) */
-.day-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 16px;
-    margin-bottom: 12px;
-}
+    .section-title {
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: var(--text) !important;
+        margin: 1rem 0 0.65rem 0;
+    }
 
-.day-label {
-    font-weight: 600;
-    color: var(--muted);
-    margin-bottom: 4px;
-}
+    .section-subtitle {
+        color: var(--muted) !important;
+        margin-bottom: 1rem;
+    }
 
-.day-menu {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text);
-}
+    .menu-preview {
+        background: #FFFDF7;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 1rem;
+        margin-top: 0.7rem;
+    }
 
-.small-muted {
-    font-size: 12px;
-    color: var(--muted);
-}
+    .meal-title {
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: var(--text) !important;
+        margin-top: 0.7rem;
+        margin-bottom: 0.2rem;
+    }
 
-/* Inputs */
-input, textarea {
-    border-radius: 10px !important;
-}
+    .small-muted {
+        color: var(--muted) !important;
+        font-size: 0.93rem;
+        line-height: 1.55;
+    }
 
-/* Tabs */
-button[role="tab"] {
-    font-weight: 600;
-    color: var(--muted);
-}
+    .question-wrap {
+        text-align: center;
+        padding: 1.2rem 0.6rem 0.8rem 0.6rem;
+    }
 
-button[role="tab"][aria-selected="true"] {
-    color: var(--text);
-    border-bottom: 2px solid var(--accent-strong);
-}
+    .question-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--text) !important;
+        margin-bottom: 0.35rem;
+        letter-spacing: -0.03em;
+    }
 
-</style>
-""", unsafe_allow_html=True)
+    .question-subtitle {
+        color: var(--muted) !important;
+        font-size: 1rem;
+        max-width: 720px;
+        margin: 0 auto;
+        line-height: 1.55;
+    }
+
+    .menu-card-selected {
+        background: linear-gradient(180deg, #FFF8D9 0%, #FFF3BF 100%);
+        border: 2px solid var(--accent-strong);
+        border-radius: 24px;
+        padding: 1.1rem;
+        box-shadow: 0 12px 30px rgba(230, 184, 0, 0.14);
+        margin-bottom: 1rem;
+    }
+
+    .menu-card-default {
+        background: #FFFFFF;
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        padding: 1.1rem;
+        box-shadow: 0 8px 24px rgba(230, 184, 0, 0.06);
+        margin-bottom: 1rem;
+    }
+
+    .tag {
+        display: inline-block;
+        background: var(--accent-soft);
+        border: 1px solid var(--border);
+        color: var(--text) !important;
+        border-radius: 999px;
+        padding: 0.28rem 0.68rem;
+        font-size: 0.84rem;
+        margin-right: 0.35rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .selection-banner {
+        background: linear-gradient(90deg, #FFF4CC 0%, #FFF9E6 100%);
+        border: 1px solid var(--accent-strong);
+        border-radius: 18px;
+        padding: 0.95rem 1rem;
+        margin: 1rem 0 1.2rem 0;
+        color: var(--text) !important;
+        font-weight: 700;
+    }
+
+    .day-card {
+        background: #FFFFFF;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 1rem;
+        min-height: 112px;
+        box-shadow: 0 6px 18px rgba(230, 184, 0, 0.06);
+        margin-bottom: 0.9rem;
+    }
+
+    .day-label {
+        color: var(--muted) !important;
+        font-size: 0.86rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .day-menu {
+        font-size: 1rem;
+        font-weight: 800;
+        color: var(--text) !important;
+        margin-bottom: 0.3rem;
+    }
+
+    .check-category {
+        font-size: 1.12rem;
+        font-weight: 800;
+        color: var(--text) !important;
+        margin: 1.1rem 0 0.65rem 0;
+        padding-top: 0.25rem;
+    }
+
+    .check-item {
+        background: #FFFFFF;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 0.8rem 0.9rem;
+        margin-bottom: 0.55rem;
+        box-shadow: 0 4px 14px rgba(230, 184, 0, 0.05);
+    }
+
+    .check-item-done {
+        background: #FFFBF0;
+        border: 1px solid #E8D78D;
+        border-radius: 16px;
+        padding: 0.8rem 0.9rem;
+        margin-bottom: 0.55rem;
+        opacity: 0.8;
+    }
+
+    .check-name {
+        font-weight: 700;
+        color: var(--text) !important;
+        margin-bottom: 0.1rem;
+    }
+
+    .check-qty {
+        color: var(--muted) !important;
+        font-size: 0.9rem;
+    }
+
+    .note-box {
+        background: #FFF8DD;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 0.85rem 1rem;
+        color: var(--muted) !important;
+        font-size: 0.92rem;
+        margin-bottom: 1rem;
+    }
+
+    .stButton > button,
+    .stDownloadButton > button {
+        border-radius: 16px !important;
+        border: 1px solid var(--border) !important;
+        background: #FFFFFF !important;
+        color: var(--text) !important;
+        font-weight: 700 !important;
+        box-shadow: 0 6px 18px rgba(230, 184, 0, 0.06) !important;
+        min-height: 2.9rem !important;
+    }
+
+    .stButton > button:hover,
+    .stDownloadButton > button:hover {
+        background: var(--accent-soft) !important;
+        border-color: var(--accent-strong) !important;
+    }
+
+    .stRadio > div {
+        gap: 0.7rem;
+    }
+
+    div[data-baseweb="select"] > div,
+    .stTextInput input,
+    .stTextArea textarea,
+    .stNumberInput input {
+        border-radius: 14px !important;
+        border: 1px solid var(--border) !important;
+        background: #FFFFFF !important;
+        color: var(--text) !important;
+        -webkit-text-fill-color: var(--text) !important;
+    }
+
+    .stProgress > div > div > div > div {
+        background-color: var(--accent-strong) !important;
+    }
+
+    button[role="tab"] {
+        font-weight: 600;
+        color: var(--muted) !important;
+    }
+
+    button[role="tab"][aria-selected="true"] {
+        color: var(--text) !important;
+        border-bottom: 2px solid var(--accent-strong) !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 if not os.path.exists(PDF_FOLDER):
     os.makedirs(PDF_FOLDER)
@@ -335,6 +514,8 @@ def guardar_ejercicio(nombre_ejercicio, peso, unidad, fecha_ejercicio, notas="")
     if not mongo_available:
         st.error("No se pudo conectar a MongoDB.")
         return
+    
+    nombre_ejercicio = normalizar_nombre_ejercicio(nombre_ejercicio)
 
     peso_kg = convertir_a_kg(peso, unidad)
 
@@ -465,6 +646,10 @@ def convertir_a_kg(peso, unidad):
         return round(peso * 0.453592, 2)
     return round(peso, 2)
 
+def normalizar_nombre_ejercicio(nombre: str) -> str:
+    nombre = nombre.strip()
+    nombre = re.sub(r"\s+", " ", nombre)
+    return nombre.title()
 
 # ==================== PDF ====================
 def guardar_pdf(uploaded_file):
@@ -1428,10 +1613,37 @@ elif opcion == "Ejercicio":
         unsafe_allow_html=True,
     )
 
-    nombre_ejercicio = st.text_input(
-        "Nombre del ejercicio",
-        placeholder="Ej. Sentadilla Smith"
-    )
+    # Cargar ejercicios ya existentes para evitar duplicados por nombre
+    ej_df = cargar_ejercicios()
+
+    ejercicios_existentes = []
+    if not ej_df.empty and "nombre_ejercicio" in ej_df.columns:
+        ejercicios_existentes = sorted(
+            ej_df["nombre_ejercicio"].dropna().unique().tolist()
+        )
+
+    if ejercicios_existentes:
+        modo_ejercicio = st.radio(
+            "Ejercicio",
+            ["Seleccionar existente", "Agregar nuevo"],
+            horizontal=True
+        )
+
+        if modo_ejercicio == "Seleccionar existente":
+            nombre_ejercicio = st.selectbox(
+                "Selecciona un ejercicio",
+                ejercicios_existentes
+            )
+        else:
+            nombre_ejercicio = st.text_input(
+                "Nombre del ejercicio",
+                placeholder="Ej. Sentadilla Smith"
+            )
+    else:
+        nombre_ejercicio = st.text_input(
+            "Nombre del ejercicio",
+            placeholder="Ej. Sentadilla Smith"
+        )
 
     col1, col2 = st.columns(2)
 
@@ -1439,7 +1651,7 @@ elif opcion == "Ejercicio":
         peso = st.number_input(
             "Peso",
             min_value=0.0,
-            value= None,
+            value=None,
             placeholder="Ej. 20",
             step=0.5,
         )
@@ -1456,7 +1668,7 @@ elif opcion == "Ejercicio":
         "Notas (opcional)",
         placeholder="Ej. Me costó más esta serie, subí peso, etc."
     )
-            
+
     if st.button("💾 Guardar entrenamiento", use_container_width=True):
         if not nombre_ejercicio.strip():
             st.warning("Escribe el nombre del ejercicio.")
