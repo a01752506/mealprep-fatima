@@ -1279,7 +1279,7 @@ if opcion == "Inicio":
         )
     with q2:
         st.markdown(
-            '<div class="soft-card"><strong>💗 Elegir favorito</strong><div class="small-muted">Hazle a Fátima la pregunta importante y guarda su menú favorito.</div></div>',
+            '<div class="soft-card"><strong>💗 Elegir favorito</strong><div class="small-muted">Escoge y guarda tu menú favorito.</div></div>',
             unsafe_allow_html=True,
         )
     with q3:
